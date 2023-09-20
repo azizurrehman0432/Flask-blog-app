@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+<title>{{ q.title }} -- hello blog</title>
+{% endblock %}
+
+
+{% block right %}
+<div class="panel panel-primary col-xs-12">
+    <div class="panel-heading">
+		<ol class="breadcrumb">
+		    <li><a href="{{ url_for('main.ask') }}" style="color: #fff;">Q&A</a></li>
+		    <li><a style="color: #fff;"><strong>question</strong></a></li>
+		</ol>
+    </div>
+    <ul class="list-group">
+	    <li class="list-group-item">
+	    	{% if q.answer %}
+	    	<p style="font-size: 30px;padding-top: 10px;">
+			<button type="button" class="btn btn-success btn-xs">
+			  	<span class="glyphicon glyphicon-ok"></span> solved
+			</button> {{ q.title }}</p>
+	    	{% else %}
+	    	<h2>{{ q.title }}</h2>
+	    	{% endif %}
+<!-- 			<a href="">
+			<button type="button" class="btn btn-success btn-xs">
+			<span class="glyphicon glyphicon-tags"></span>
+			 zhuti
+			</button></a> -->
+			<a href="{{ url_for('main.user_index',id=q.author) }}">
+			<button type="button" class="btn btn-default btn-xs" id="read">
+			<span class="glyphicon glyphicon-user"></span>writer：{{ User.query.filter_by(id=q.author).first().username }}
+			</button></a>
+			<a href="#answer">
+			<button type="button" class="btn btn-default btn-xs" id="read">
+			<span class="glyphicon glyphicon-eye-open"></span> {{ q.reply }}answers
+			</button></a>
+			<button type="button" class="btn btn-default btn-xs" id="read" disabled>
+			<span class="glyphicon glyphicon-eye-open"></span> {{ q.clink }}
+			</button>
+			<button type="button" class="btn btn-default btn-xs" id="time" disabled>
+			<span class="glyphicon glyphicon-time"></span>
+			<script>
+			var weekday = moment('{{ q.timestamp }}').locale('zh-cn').format('YYYY-MM-DD HH:mm:ss'); 
+			document.write(weekday);
+			</script>
+			</button>
+			{% if User.query.filter_by(id=q.author).first().is_self(current_user) %}
+			<button type="button" class="btn btn-primary btn-xs" id="edit">
+			<span class="glyphicon glyphicon-edit"></span>
+			</button>
+			{% endif %}			
+	    </li>
+	    <li class="list-group-item">
+	        <p>{{ q.body|safe }}</p>
+	    </li>
+    </ul>	
+    <div class="panel-footer">
+
+    </div>
+</div>
+
+<div class="panel panel-success col-xs-12" id="answer">
+    <div class="panel-heading">
+    	<strong>{{ q.reply }}</strong> 
+    </div>
+	{% if answers == [] %}
+	<div class="panel-body">
+		<div class="alert alert-info"> </div>	
+	</div>
+	{% endif %}
+    <ul class="list-group">	
+    	{% for c in answers %}
+		<div class="list-group-item col-xs-12" id="answer{{ c.id }}">	
+			<div class="col-xs-1">
+				<a href="{{ url_for('main.user_index',id=c.author) }}"><img src="{{ url_for('static',filename='user/avatar/'+User.query.filter_by(id=c.author).first().avatar) }}" height="40" width="40"></a>
+			</div>
+			<div class="col-xs-10" style="position: absolute;left: 90px;top: 0px;">
+				<div style="position: absolute;left: 0px;top: 6px;">
+				<a href="{{ url_for('main.user_index',id=c.author) }}">{{ User.query.filter_by(id=c.author).first().username }}</a>
+				<p class="text-muted">
+					<script>
+					var weekday = moment('{{ c.timestamp }}').locale('zh-cn').fromNow(); 
+					document.write(weekday);
+					</script>
+				</p>
+				</div>
+				<div style="position: absolute;left: 80px;top: 12px;">
+					<a href="{{ url_for('main.app_answer',id=c.id,q_id=c.q_id) }}">
+					<button type="button" class="btn btn-primary btn-xs">
+					  	<span class="glyphicon glyphicon-thumbs-up"></span> {{ c.app }}
+					</button>
+					</a>
+					<a href="{{ url_for('main.opp_answer',id=c.id,q_id=c.q_id) }}">
+					<button type="button" class="btn btn-default btn-xs">
+					  	<span class="glyphicon glyphicon-thumbs-down"></span> {{ c.opp }}
+					</button>
+					</a>
+					{% if current_user.is_authenticated and current_user.id == q.author and not q.answer%}
+					<a href="{{ url_for('main.is_answer',id=q.id,ad=c.id) }}">
+					<button type="button" class="btn btn-success btn-xs">
+					  	<span class="glyphicon glyphicon-ok"></span>
+					</button>
+					</a>
+					{% endif %}
+					{% if c.adopt %}
+					<button type="button" class="btn btn-success btn-xs">
+					  	<span class="glyphicon glyphicon-ok"></span>
+					</button>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-xs-2 pull-right">
+				<a href="#edit_comment"><button type="button" class="btn btn-success btn-xs" id="read"  onclick="editor.txt.html('<i><a href=&quot;{{ url_for('main.user_index',id=c.author) }}&quot;>@{{ User.query.filter_by(id=c.author).first().username }}&nbsp;</a></i>')">
+				<span class="glyphicon glyphicon-comment"></span>
+				</button></a>
+			</div>
+			<hr align=center width=100% color=#987cb9 size=2 style="margin: 4px;">
+			<div class="comment-body col-sm-12">
+				<h4>{{ c.body|safe }}</h4>
+			</div>
+		</div>
+		{% endfor %}
+	</ul>
+</div>
+
+{% include '_comment.html' %}
+{% endblock %}
+
+

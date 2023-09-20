@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+<title>{{ p.head }} hello blog</title>
+{% endblock %}
+
+
+{% block right %}
+<div class="panel panel-primary col-xs-12">
+    <div class="panel-heading">
+		<ol class="breadcrumb">
+		    <li><a href="{{ url_for('main.topics') }}" style="color: #fff;"></a></li>
+		    <li><a href="{{ url_for('main.topic',topic=p.topic.topic) }}" style="color: #fff;">{{ p.topic.topic }}</a></li>
+		    <li><a style="color: #fff;"><strong></strong></a></li>
+		</ol>
+    </div>
+    <ul class="list-group">
+	    <li class="list-group-item">
+	        <h2>{{ p.head }}</h2>
+			<a href="{{ url_for('main.topic',topic=p.topic.topic) }}">
+			<button type="button" class="btn btn-success btn-xs">
+			<span class="glyphicon glyphicon-tags"></span>
+			 {{ p.topic.topic }}
+			</button></a>
+			<a href="{{ url_for('main.user_index',id=author.id) }}">
+			<button type="button" class="btn btn-default btn-xs" id="read">
+			<span class="glyphicon glyphicon-user"></span> ：{{ author.username }}
+			</button></a>
+			<button type="button" class="btn btn-default btn-xs" id="read" disabled>
+			<span class="glyphicon glyphicon-eye-open"></span> {{ p.clink }}
+			</button>
+			<button type="button" class="btn btn-default btn-xs" id="time" disabled>
+			<span class="glyphicon glyphicon-time"></span>
+			<script>
+			var weekday = moment('{{ p.timestamp }}').locale('zh-cn').format('YYYY-MM-DD HH:mm:ss'); 
+			document.write(weekday);
+			</script>
+			</button>
+			{% if author.is_self(current_user) %}
+			<button type="button" class="btn btn-primary btn-xs" id="edit">
+			<span class="glyphicon glyphicon-edit"></span> 
+			</button>
+			<a href="{{ url_for('main.delete_post',id=p.id) }}" onclick="return confirm('');">
+			<button type="button" class="btn btn-danger btn-xs" id="delete">
+			<span class="glyphicon glyphicon-trash"></span> 
+			</button></a>
+			{% endif %}			
+	    </li>
+	    <li class="list-group-item">
+	        <p>{{ p.body|safe }}</p>
+	    </li>
+    </ul>	
+    <div class="panel-footer">
+		<p class="text-muted" style="margin-bottom: 0px; font-size: 12px;"><span class="glyphicon glyphicon-tags"></span> <em>TAGGED:</em>
+		{% for t in p.tags.all() %}
+		<a href="#">{{ t.tag.tag_name }}</a> /
+		{% endfor %}
+		</p> 
+    </div>
+</div>
+
+<div class="panel panel-success col-xs-12" id="comment">
+    <div class="panel-heading">
+    	
+    </div>
+	{% if comments == [] %}
+	<div class="panel-body">
+		<div class="alert alert-info"></div>	
+	</div>
+	{% endif %}
+    <ul class="list-group">	
+    	{% for c in comments %}
+		<div class="list-group-item col-sm-12" id="comment{{ c.id }}">	
+			<div class="col-sm-1">
+				<a href="{{ url_for('main.user_index',id=c.author) }}"><img src="{{ url_for('static',filename='user/avatar/'+c.comment_author.avatar) }}" height="40" width="40"></a>
+			</div>
+			<div class="col-sm-6">
+				<a href="{{ url_for('main.user_index',id=c.author) }}">{{ c.comment_author.username }}</a>
+				<p class="text-muted">
+					<script>
+					var weekday = moment('{{ c.timestamp }}').locale('zh-cn').fromNow(); 
+					document.write(weekday);
+					</script>
+				</p>
+			</div>
+			<div class="col-sm-1 col-sm-offset-4">
+				<p></p>
+				<a href="#edit_comment"><button type="button" class="btn btn-success btn-xs" id="reply" onclick="editor.txt.html('<p><a href=&quot;{{ url_for('main.user_index',id=c.comment_author.id) }}&quot;>@{{ c.comment_author.username }}&nbsp;</a></p>')">
+				<span class="glyphicon glyphicon-comment"></span>
+				</button></a>
+			</div>
+<!-- 			<hr align=center width=100% color=#987cb9 size=2 style="margin: 0px;">
+ -->			<div class="comment-body col-sm-12">
+				<h4>{{ c.body|safe }}</h4>
+			</div>
+		</div>
+		{% endfor %}
+	</ul>
+</div>
+
+{% include '_comment.html' %}
+{% endblock %}

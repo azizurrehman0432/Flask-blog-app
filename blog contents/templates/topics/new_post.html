@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block head %}
+{{ super() }}
+<title>hello blog --</title>
+<style type="text/css">
+#topic {
+	display: table;
+}
+.form-group:nth-child(6) {
+	display: table;
+}
+</style>
+{% endblock %}
+
+
+{% block right %}
+<div class="panel panel-default">
+	<div class="panel-heading">
+	<b></b>
+	</div>
+    <div class="panel-body">
+    	<form role="form" action="{{ url_for('main.new_post') }}" method="post">
+    		{{ form.csrf_token }}
+            <div class="form-group">
+                {{ form.head.label }} {{ form.head(class ="form-control")}}
+            </div>
+    		<div class="form-group" style="margin-bottom: 0px;">
+    			{{ form.postbody.label }}
+                <div hidden>
+                {{ form.postbody(class ="form-control")}}
+                </div>
+    		</div>
+		    <div id="editor" style="margin-bottom: 15px; background-color: #fff;">
+		    </div>
+    		<div class="form-group">
+    			{{ form.tag.label }} {{ form.tag(class ="form-control")}}
+    		</div>
+    		<div class="form-group">
+    			{{ form.topic.label }} {{ form.topic(class ="form-control")}}
+    		</div>
+    	   <button class="btn btn-info" id="submit-new-post"></button>
+        </form>
+    <script src="{{ url_for('static',filename='js/wangEditor.min.js') }}"></script>
+    <script type="text/javascript">
+        var E = window.wangEditor
+        var editor = new E('#editor')
+        var $postbody = $('#postbody')
+        editor.customConfig.onchange = function (html) {
+            $postbody.val(html)
+        }      
+        editor.create();
+        $postbody.val(editor.txt.html())
+    </script>
+    </div>
+
+</div>
+{% endblock %}

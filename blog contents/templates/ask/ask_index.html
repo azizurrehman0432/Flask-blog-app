@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+<title>Technical Q&A -- Weibo Blog</title>
+{% endblock %}
+
+{% block right %}
+<div class="panel panel-primary col-xs-12">
+    <div class="panel-heading col-xs-12">
+    	<h3 class="col-xs-6" style="margin-top: 10px;">Technical Q&A</h3>
+    	<a data-toggle="modal" href="#new_question"><div class="well well-sm col-xs-6 pull-right" style="color: #000;width: 65px;margin-bottom: 0;">New Question</div></a>	
+    </div>
+	<ul class="list-group">
+		{% for q in qs[::-1] %}
+		<li class="list-group-item col-xs-12">
+				<a href="{{ url_for('main.question', id=q.id) }}"><h4 class="col-xs-12"><strong>{{ q.title }}</strong></h4></a>
+				<p class="list-meta col-xs-12">
+					<a href="{{ url_for('main.user_index', id=User.query.filter_by(id=q.author).first().id) }}">
+					<button type="button" class="btn btn-info btn-xs">
+					<span class="glyphicon glyphicon-user"></span>
+					Author: {{ User.query.filter_by(id=q.author).first().username }}
+					</button></a>
+					<button type="button" class="btn btn-default btn-xs" id="read">
+					<span class="glyphicon glyphicon-eye-open"></span> {{ q.clink }} Views
+					</button>
+					<button type="button" class="btn btn-default btn-xs" id="read">
+					<span class="glyphicon glyphicon-eye-open"></span> {{ q.reply }} Answers
+					</button>
+					<button type="button" class="btn btn-default btn-xs" id="time">
+					<span class="glyphicon glyphicon-time"></span>
+						<script>
+						var weekday = moment('{{ q.timestamp }}').locale('zh-cn').fromNow(); 
+						document.write(weekday);
+						</script>				
+					</button>
+					{% if q.answer %}
+					<button type="button" class="btn btn-success btn-xs">
+					  	<span class="glyphicon glyphicon-ok"></span> Solved
+					</button>
+					{% endif %}
+				</p>
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+{% endblock %}
+
+{% block modal %}
+{{ super() }}
+<!-- Modal -->
+<div class="modal fade" id="new_question" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Ask a Question</h4>
+            </div>
+            <div class="modal-body">
+                {% if current_user.is_authenticated %}
+		    	<form role="form" action="" method="post">
+		    		{{ form.csrf_token }}
+		            <div class="form-group">
+		                {{ form.title.label }} {{ form.title(class ="form-control")}}
+		            </div>
+		    		<div class="form-group" style="margin-bottom: 0px;">
+		    			{{ form.body.label }}
+		                <div hidden>
+		                {{ form.body(class ="form-control")}}
+		                </div>
+		    		</div>
+				    <div id="editor" style="margin-bottom: 15px; background-color: #fff;">
+				    </div>
+		    	   <button class="btn btn-info" id="submit1">Publish</button>
+		        </form>
+			    <script src="{{ url_for('static', filename='js/wangEditor.min.js') }}"></script>
+			    <script type="text/javascript">
+			        var E = window.wangEditor
+			        var editor = new E('#editor')
+			        var $body = $('#body')
+			        editor.customConfig.onchange = function (html) {
+			            // Monitor changes and sync to textarea
+			            $body.val(html)
+			        }
+				    editor.customConfig.menus = [
+					    'head',  // Title
+					    'bold',  // Bold
+					    'italic',  // Italic
+					    'underline',  // Underline
+					    'strikeThrough',  // Strikethrough
+					    'foreColor',  // Text color
+					    'backColor',  // Background color
+					    'link',  // Insert link
+					    'list',  // List
+					    'justify',  // Alignment
+					    'quote',  // Quote
+					    'image',  // Insert image
+					    'table',  // Table
+					    'code',  // Insert code
+					    'undo',  // Undo
+					    'redo'  // Redo
+				    ]       
+			        editor.create();
+					$body.val(editor.txt.html())
+			    </script>
+                {% else %}
+                Please log in to perform this operation.
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                {% if current_user.is_authenticated %}
+                <button type="submit" class="btn btn-primary" onclick="load()">Submit</button>
+                <script>
+				function load(){
+				    // Both methods below have the same effect
+				    // document.getElementById("target").onclick();
+				    document.getElementById("submit1").click();
+				}
+				document.getElementById("submit1").style.display = "none"
+				</script>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

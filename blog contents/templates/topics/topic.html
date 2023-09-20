@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% if title %}
+{% block title %}
+<title>{{ title }} hello blog</title>
+{% endblock %}
+{% endif %}
+
+
+{% block right %}
+<div class="panel panel-primary">
+    <div class="panel-heading">
+		<ol class="breadcrumb">
+		    <li><a href="{{ url_for('main.topics') }}" style="color: #fff;"></a></li>
+		    <li><a style="color: #fff;"><strong>{{ t.topic }}</strong></a></li>
+		</ol>
+    </div>
+    <div class="panel-body">
+        <div class="topic-img col-md-2">
+        <img src="{{ url_for('static',filename='topics/'+t.img) }}" class="img-circle center-block" style="width: 100px;height: 100px;">
+        <p><h4 class="text-center" style="padding-top: 10px;"><strong>{{ t.topic }}</strong></h4></p>
+        </div>
+        <div class="topic-body col-md-6">
+        <p><strong>:</strong></p>
+        <p>{{ t.info }}</p>
+        </div>
+        <div class="topic-info col-md-4">
+        <p>：
+        <a href="{{ url_for('main.user_index',id=t.author) }}">{{ t.topic_author.username }}</p></a>
+        <p>:
+			<script>
+			var weekday = moment('{{ t.timestamp }}').locale('zh-cn').format('LL'); 
+			document.write(weekday);
+			</script>
+        </p>
+        <button type="button" class="btn btn-default btn-xs" id="read">
+			<span class="glyphicon glyphicon-eye-open"></span> {{ t.clink }}
+		</button>
+		<button type="button" class="btn btn-default btn-xs" id="read">
+			<span class="glyphicon glyphicon-book"></span> {{ Post.query.filter_by(tpoic=t.id).count() }}
+		</button>
+		<p style="padding-top: 10px;">
+		<a href="#edit-topic" data-toggle="modal">
+		<button type="button" class="btn btn-success btn-sm"></button>
+		</a>
+		{% if not f %}
+		<a href="{{ url_for('main.follow_topic',topic=t.topic) }}">
+		<button type="button" class="btn btn-primary btn-sm"></button>
+		</a>
+		{% else %}
+		<a href="{{ url_for('main.unfollow_topic',topic=t.topic) }}">
+		<button type="button" class="btn btn-primary btn-sm"></button>
+		</a>
+		{% endif %}		
+		</div></p>
+    </div>
+    <div class="panel-footer">
+
+    </div>
+</div>
+
+<div class="panel panel-default col-xs-12">
+	<div class="panel-heading">
+	 <b>{{ t.topic }}</b> 
+	</div>
+	{% if Post.query.filter_by(tpoic=t.id).all() == [] %}
+	<div class="panel-body">
+	<div class="alert alert-info"></div>
+	</div>
+	{% endif %}
+    <ul class="list-group">	
+		{% for p in Post.query.filter_by(tpoic=t.id).all()[::-1] %}
+		<div class="list-group-item col-xs-12">
+			<div class ="col-xs-12">
+				<a href="{{ url_for('main.post',id=p.id) }}"><h4 class="col-xs-12"><strong>{{ p.head }}</strong></h4></a>
+				<p class="list-meta col-xs-12">
+					<a href="{{ url_for('main.user_index',id=p.post_author.id) }}">
+					<button type="button" class="btn btn-info btn-xs">
+					<span class="glyphicon glyphicon-user"></span>
+					：{{ p.post_author.username }}
+					</button></a>
+					<button type="button" class="btn btn-default btn-xs" id="read">
+					<span class="glyphicon glyphicon-eye-open"></span> {{ p.clink }}
+					</button>
+					<button type="button" class="btn btn-default btn-xs" id="time">
+					<span class="glyphicon glyphicon-time"></span>
+						<script>
+						var weekday = moment('{{ p.timestamp }}').locale('zh-cn').fromNow(); 
+						document.write(weekday);
+						</script>				
+					</button>
+					<a href="{{ url_for('main.post',id=p.id) }}#comment">
+					<button type="button" class="btn btn-default btn-xs" id="comments">
+					<span class="glyphicon glyphicon-comment"></span> {{ Comments.query.filter_by(post_id=p.id).count() }}
+					</button></a>
+				</p>
+			</div>
+		</div>
+		{% endfor %}		
+	</ul>
+</div>
+
+<div class="modal fade" id="edit-topic" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+            </div>
+            <div class="modal-body">
+            	{% if current_user.is_authenticated %}
+            	{{ wtf.quick_form(form) }}
+            	{% else %}
+            	
+            	{% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"></button>
+            	{% if current_user.is_authenticated %}
+                <button type="submit" class="btn btn-primary" onclick="load()"></button>
+                {% endif %}
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+function load(){
+    
+    // document.getElementById("target").onclick();
+    document.getElementById("submit1").click();
+}
+document.getElementById("submit1").style.display="none"
+</script>
+<style type="text/css">
+#topic_info {
+	height: 180px;
+}
+</style>
+{% endblock %}
